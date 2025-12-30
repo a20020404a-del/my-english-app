@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Volume2, ChevronRight, Check, RotateCcw } from 'lucide-react'
+import { ArrowLeft, Volume2, ChevronRight, Check, RotateCcw, Play } from 'lucide-react'
 import { scenesData, Scene, SubScene, Phrase } from '../data/scenes'
 import { speakText, initSpeechSynthesis } from '../services/assistant'
 
@@ -85,46 +85,70 @@ export default function ScenesPage() {
   // Scene Grid View
   if (viewMode === 'scenes') {
     return (
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+      <div className="max-w-5xl mx-auto pb-20 md:pb-0">
+        {/* Header */}
+        <div className="mb-10">
+          <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-2 tracking-wide uppercase">
+            Situational English
+          </p>
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight">
             場面別英会話
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            日常のシチュエーションで使える英語フレーズを学習しましょう
+          <p className="text-slate-500 dark:text-slate-400 text-lg">
+            実際のシチュエーションで使える表現を学ぼう
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {scenesData.map(scene => (
-            <button
-              key={scene.id}
-              onClick={() => handleSceneSelect(scene)}
-              className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all hover:scale-105 text-center group"
-            >
-              <div className="text-4xl mb-3">{scene.icon}</div>
-              <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">
-                {scene.name}
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {scene.nameEn}
-              </p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                {scene.subScenes.reduce((acc, sub) => acc + sub.phrases.length, 0)} フレーズ
-              </p>
-            </button>
-          ))}
+        {/* Scene Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          {scenesData.map(scene => {
+            const phraseCount = scene.subScenes.reduce((acc, sub) => acc + sub.phrases.length, 0)
+            return (
+              <button
+                key={scene.id}
+                onClick={() => handleSceneSelect(scene)}
+                className="group relative bg-white dark:bg-slate-900 rounded-2xl p-5 text-left transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 border border-slate-100 dark:border-slate-800"
+              >
+                <div className="text-3xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                  {scene.icon}
+                </div>
+                <h3 className="font-semibold text-slate-900 dark:text-white text-base mb-1 leading-tight">
+                  {scene.name}
+                </h3>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">
+                  {scene.nameEn}
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                    {phraseCount}
+                  </span>
+                  <span className="text-xs text-slate-400">フレーズ</span>
+                </div>
+                <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              </button>
+            )
+          })}
         </div>
 
-        <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            使い方
+        {/* Tips Card */}
+        <div className="mt-10 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-2xl border border-indigo-100/50 dark:border-indigo-900/30">
+          <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-xs">💡</span>
+            学習のコツ
           </h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-            <li>1. 学習したい場面を選択</li>
-            <li>2. サブシーンを選んでフレーズを確認</li>
-            <li>3. 音声ボタンで発音を確認</li>
-            <li>4. 練習モードでマスターしましょう</li>
+          <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
+            <li className="flex items-start gap-2">
+              <span className="text-indigo-400 mt-1">•</span>
+              <span>まずは場面を選んで、状況をイメージしながら学習</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-indigo-400 mt-1">•</span>
+              <span>音声を聞いて、声に出して練習すると効果的</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-indigo-400 mt-1">•</span>
+              <span>練習モードでフラッシュカード形式の復習ができます</span>
+            </li>
           </ul>
         </div>
       </div>
@@ -134,41 +158,50 @@ export default function ScenesPage() {
   // SubScene List View
   if (viewMode === 'subscenes' && selectedScene) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-3xl mx-auto pb-20 md:pb-0">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
+          className="group flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-8 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5" />
-          場面一覧に戻る
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-medium">戻る</span>
         </button>
 
-        <div className="mb-8 text-center">
-          <div className="text-5xl mb-4">{selectedScene.icon}</div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        {/* Scene Header */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 mb-5 shadow-sm">
+            <span className="text-4xl">{selectedScene.icon}</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">
             {selectedScene.name}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-slate-500 dark:text-slate-400">
             {selectedScene.description}
           </p>
         </div>
 
-        <div className="space-y-4">
-          {selectedScene.subScenes.map(subScene => (
+        {/* SubScene List */}
+        <div className="space-y-3">
+          {selectedScene.subScenes.map((subScene, index) => (
             <button
               key={subScene.id}
               onClick={() => handleSubSceneSelect(subScene)}
-              className="w-full p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-between group"
+              className="group w-full p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 transition-all duration-200 flex items-center justify-between hover:shadow-lg hover:shadow-slate-100/50 dark:hover:shadow-slate-900/50"
             >
-              <div className="text-left">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                  {subScene.name}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {subScene.phrases.length} フレーズ
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 font-semibold text-sm">
+                  {String(index + 1).padStart(2, '0')}
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-slate-900 dark:text-white mb-0.5">
+                    {subScene.name}
+                  </h3>
+                  <p className="text-sm text-slate-400 dark:text-slate-500">
+                    {subScene.phrases.length} フレーズ
+                  </p>
+                </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+              <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
             </button>
           ))}
         </div>
@@ -179,33 +212,36 @@ export default function ScenesPage() {
   // Phrase List View
   if (viewMode === 'phrases' && selectedSubScene) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-3xl mx-auto pb-20 md:pb-0">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
+          className="group flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-8 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5" />
-          {selectedScene?.name}に戻る
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-medium">{selectedScene?.name}</span>
         </button>
 
-        <div className="mb-6 flex items-center justify-between">
+        {/* Header with Practice Button */}
+        <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
               {selectedSubScene.name}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-slate-500 dark:text-slate-400">
               {selectedSubScene.phrases.length} フレーズ
             </p>
           </div>
           <button
             onClick={handleStartPractice}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-indigo-500/25"
           >
-            練習モード
+            <Play className="w-4 h-4" />
+            <span>練習する</span>
           </button>
         </div>
 
-        <div className="space-y-4">
+        {/* Phrase Cards */}
+        <div className="space-y-3">
           {selectedSubScene.phrases.map((phrase, index) => (
             <PhraseCard
               key={index}
@@ -227,69 +263,73 @@ export default function ScenesPage() {
     const isCompleted = completedPhrases.has(phraseId)
 
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-xl mx-auto pb-20 md:pb-0">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
+          className="group flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-8 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5" />
-          フレーズ一覧に戻る
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-medium">フレーズ一覧</span>
         </button>
 
-        <div className="mb-4">
-          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-            <span>{selectedSubScene.name}</span>
-            <span>{currentPhraseIndex + 1} / {selectedSubScene.phrases.length}</span>
+        {/* Progress */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-slate-600 dark:text-slate-400 font-medium">{selectedSubScene.name}</span>
+            <span className="text-slate-400 dark:text-slate-500 tabular-nums">
+              {currentPhraseIndex + 1} / {selectedSubScene.phrases.length}
+            </span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-          {/* Situation Badge */}
+        {/* Flashcard */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50">
+          {/* Situation Tag */}
           <div className="px-6 pt-6">
-            <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-sm rounded-full">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30">
               {currentPhrase.situation}
             </span>
           </div>
 
-          {/* Japanese (Question) */}
-          <div className="p-6">
-            <p className="text-xl text-gray-900 dark:text-white font-medium text-center">
+          {/* Question */}
+          <div className="p-8">
+            <p className="text-xl md:text-2xl text-slate-900 dark:text-white font-medium text-center leading-relaxed">
               {currentPhrase.japanese}
             </p>
           </div>
 
-          {/* Answer Section */}
+          {/* Answer */}
           {showAnswer ? (
-            <div className="p-6 bg-gray-50 dark:bg-gray-700/50 border-t dark:border-gray-700">
+            <div className="p-6 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 border-t border-slate-100 dark:border-slate-800">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-3 mb-3">
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  <p className="text-xl md:text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                     {currentPhrase.english}
                   </p>
                   <button
                     onClick={(e) => playAudio(currentPhrase.english, e)}
-                    className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-colors"
+                    className="p-2.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors"
                     disabled={!speechReady}
                   >
-                    <Volume2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <Volume2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </button>
                 </div>
-                <p className="text-lg text-gray-600 dark:text-gray-400">
+                <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">
                   {currentPhrase.pronunciation}
                 </p>
               </div>
             </div>
           ) : (
-            <div className="p-6 border-t dark:border-gray-700">
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={() => setShowAnswer(true)}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors font-semibold text-lg"
               >
                 答えを見る
               </button>
@@ -302,39 +342,42 @@ export default function ScenesPage() {
           <div className="mt-6 space-y-4">
             <button
               onClick={() => handleMarkComplete(phraseId)}
-              className={`w-full py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors ${
+              className={`w-full py-3.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all ${
                 isCompleted
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-transparent'
               }`}
             >
-              <Check className="w-5 h-5" />
+              <Check className={`w-5 h-5 ${isCompleted ? 'text-emerald-500' : ''}`} />
               {isCompleted ? '覚えた！' : '覚えたらチェック'}
             </button>
 
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <button
                 onClick={handlePrevPhrase}
                 disabled={currentPhraseIndex === 0}
-                className="flex-1 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium"
               >
                 前へ
               </button>
               <button
                 onClick={handleNextPhrase}
                 disabled={currentPhraseIndex === selectedSubScene.phrases.length - 1}
-                className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium shadow-lg shadow-indigo-500/25"
               >
                 次へ
               </button>
             </div>
 
             {currentPhraseIndex === selectedSubScene.phrases.length - 1 && (
-              <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                <p className="text-green-800 dark:text-green-200 font-medium mb-2">
-                  このセクション完了！
+              <div className="mt-4 p-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-2xl border border-emerald-100 dark:border-emerald-900/30 text-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-2xl">🎉</span>
+                </div>
+                <p className="text-emerald-800 dark:text-emerald-200 font-semibold mb-1">
+                  セクション完了！
                 </p>
-                <p className="text-sm text-green-600 dark:text-green-300 mb-4">
+                <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-4">
                   {completedPhrases.size} / {selectedSubScene.phrases.length} フレーズを覚えました
                 </p>
                 <button
@@ -342,7 +385,7 @@ export default function ScenesPage() {
                     setCurrentPhraseIndex(0)
                     setShowAnswer(false)
                   }}
-                  className="flex items-center justify-center gap-2 mx-auto text-green-700 dark:text-green-300 hover:underline"
+                  className="inline-flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 font-medium transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
                   もう一度練習する
@@ -372,37 +415,37 @@ function PhraseCard({
 
   return (
     <div
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden cursor-pointer"
+      className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 overflow-hidden cursor-pointer transition-all duration-200 hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-lg hover:shadow-slate-100/50 dark:hover:shadow-slate-900/50"
       onClick={() => setExpanded(!expanded)}
     >
-      <div className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-400">
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="mb-2">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                 {phrase.situation}
               </span>
             </div>
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+            <p className="text-base font-semibold text-slate-900 dark:text-white leading-relaxed">
               {phrase.english}
             </p>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
               {phrase.japanese}
             </p>
           </div>
           <button
             onClick={(e) => onPlayAudio(phrase.english, e)}
-            className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-colors ml-4"
+            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors flex-shrink-0 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30"
             disabled={!speechReady}
           >
-            <Volume2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <Volume2 className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
           </button>
         </div>
 
         {expanded && (
-          <div className="mt-4 pt-4 border-t dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">発音</p>
-            <p className="text-lg text-blue-600 dark:text-blue-400">
+          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <p className="text-xs text-slate-400 dark:text-slate-500 mb-1 font-medium uppercase tracking-wider">発音</p>
+            <p className="text-base text-indigo-600 dark:text-indigo-400 font-medium">
               {phrase.pronunciation}
             </p>
           </div>
