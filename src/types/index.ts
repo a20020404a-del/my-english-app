@@ -1,9 +1,17 @@
+// Pronunciation info
+export interface PronunciationData {
+  ipa: string;           // IPA表記 (例: /əˈveɪləbəl/)
+  audio?: string;        // 音声URL (オプション)
+}
+
 // Word model
 export interface Word {
   id: string;
   english: string;
   japanese: string;
+  pronunciation?: PronunciationData;  // 発音情報
   example?: string;
+  examples?: string[];   // 複数の例文
   category?: string;
   difficulty: 1 | 2 | 3;
   createdAt: Date;

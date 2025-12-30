@@ -1,4 +1,5 @@
 import { Word, StudyRecord, WordWithStudyInfo } from '../types'
+import { vocabularyData, getRandomWords } from '../data/vocabulary'
 
 const WORDS_KEY = 'english-master-words'
 const RECORDS_KEY = 'english-master-records'
@@ -181,23 +182,49 @@ export function getTodayStudyCount(): number {
   }).length
 }
 
-// Initialize with sample data if empty
+// Initialize with sample data if empty (using vocabulary database with IPA)
 export function initializeSampleData(): void {
   const words = getWords()
   if (words.length > 0) return
 
-  const sampleWords: Omit<Word, 'id' | 'createdAt' | 'updatedAt'>[] = [
-    { english: 'apple', japanese: 'りんご', example: 'I eat an apple every day.', category: '食べ物', difficulty: 1 },
-    { english: 'beautiful', japanese: '美しい', example: 'The sunset is beautiful.', category: '形容詞', difficulty: 2 },
-    { english: 'challenge', japanese: '挑戦', example: 'This is a big challenge for me.', category: '名詞', difficulty: 2 },
-    { english: 'determine', japanese: '決定する', example: 'We need to determine the cause.', category: '動詞', difficulty: 3 },
-    { english: 'essential', japanese: '必要不可欠な', example: 'Water is essential for life.', category: '形容詞', difficulty: 3 },
-    { english: 'friend', japanese: '友達', example: 'She is my best friend.', category: '名詞', difficulty: 1 },
-    { english: 'gradually', japanese: '徐々に', example: 'The weather is gradually improving.', category: '副詞', difficulty: 2 },
-    { english: 'happiness', japanese: '幸福', example: 'Money cannot buy happiness.', category: '名詞', difficulty: 2 },
-    { english: 'important', japanese: '重要な', example: 'This is an important decision.', category: '形容詞', difficulty: 1 },
-    { english: 'journey', japanese: '旅', example: 'Life is a long journey.', category: '名詞', difficulty: 2 },
-  ]
+  // Use vocabulary database with IPA pronunciation and examples
+  const sampleVocab = getRandomWords(100) // Start with 100 words
+
+  const sampleWords: Omit<Word, 'id' | 'createdAt' | 'updatedAt'>[] = sampleVocab.map(v => ({
+    english: v.english,
+    japanese: v.japanese,
+    pronunciation: { ipa: v.ipa },
+    example: v.examples[0],
+    examples: v.examples,
+    category: v.category,
+    difficulty: v.difficulty,
+  }))
 
   sampleWords.forEach(word => addWord(word))
+}
+
+// Reset and reload vocabulary from database
+export function reloadVocabulary(count: number = 100): void {
+  // Clear existing words
+  saveWords([])
+  saveStudyRecords([])
+
+  // Load new vocabulary with IPA
+  const vocab = getRandomWords(count)
+  const newWords: Omit<Word, 'id' | 'createdAt' | 'updatedAt'>[] = vocab.map(v => ({
+    english: v.english,
+    japanese: v.japanese,
+    pronunciation: { ipa: v.ipa },
+    example: v.examples[0],
+    examples: v.examples,
+    category: v.category,
+    difficulty: v.difficulty,
+  }))
+
+  newWords.forEach(word => addWord(word))
+}
+
+// Get total vocabulary count
+export function getVocabularyCount(): number {
+  return vocabularyData.length
 }

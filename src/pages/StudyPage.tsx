@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { RotateCcw, Check, X, BookOpen, Trophy, ArrowRight } from 'lucide-react'
+import { RotateCcw, Check, X, BookOpen, Trophy, ArrowRight, Volume2 } from 'lucide-react'
 import { WordWithStudyInfo } from '../types'
 import { getStudyWords, addStudyRecord } from '../services/storage'
+import { speakText, initSpeechSynthesis } from '../services/assistant'
 
 type StudyState = 'ready' | 'studying' | 'finished'
 
@@ -11,6 +12,7 @@ export default function StudyPage() {
   const [words, setWords] = useState<WordWithStudyInfo[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
+  const [speechReady, setSpeechReady] = useState(false)
   const [results, setResults] = useState<{ correct: number; incorrect: number }>({
     correct: 0,
     incorrect: 0,
@@ -23,7 +25,17 @@ export default function StudyPage() {
 
   useEffect(() => {
     loadWords()
+    // Initialize speech synthesis
+    initSpeechSynthesis().then(() => setSpeechReady(true))
   }, [])
+
+  // Play pronunciation
+  const playPronunciation = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card flip
+    if (currentWord && speechReady) {
+      speakText(currentWord.english, 0.8)
+    }
+  }
 
   const startStudy = () => {
     if (words.length === 0) return
@@ -182,14 +194,41 @@ export default function StudyPage() {
             {/* Front */}
             <div className="absolute inset-0 backface-hidden">
               <div className="w-full h-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center p-6">
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                   タップして答えを見る
                 </p>
-                <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
-                  {currentWord?.english}
-                </h2>
-                {currentWord?.example && (
-                  <p className="text-gray-500 dark:text-gray-400 mt-4 text-center italic">
+
+                {/* Word with Audio */}
+                <div className="flex items-center gap-3 mb-2">
+                  <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
+                    {currentWord?.english}
+                  </h2>
+                  <button
+                    onClick={playPronunciation}
+                    disabled={!speechReady}
+                    className="p-2 bg-primary-100 dark:bg-primary-900/30 hover:bg-primary-200 dark:hover:bg-primary-900/50 text-primary-600 dark:text-primary-400 rounded-full transition-colors disabled:opacity-50"
+                    title="発音を聞く (American English)"
+                  >
+                    <Volume2 className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* IPA Pronunciation */}
+                {currentWord?.pronunciation?.ipa && (
+                  <p className="text-lg font-mono text-primary-600 dark:text-primary-400 mb-3">
+                    {currentWord.pronunciation.ipa}
+                  </p>
+                )}
+
+                {/* Example Sentences */}
+                {currentWord?.examples && currentWord.examples.length > 0 ? (
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center space-y-1 max-h-20 overflow-y-auto">
+                    {currentWord.examples.slice(0, 2).map((ex, i) => (
+                      <p key={i} className="italic">"{ex}"</p>
+                    ))}
+                  </div>
+                ) : currentWord?.example && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center italic">
                     "{currentWord.example}"
                   </p>
                 )}
