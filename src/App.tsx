@@ -4,6 +4,7 @@ import Layout from './components/layout/Layout'
 import DashboardPage from './pages/DashboardPage'
 import WordsPage from './pages/WordsPage'
 import StudyPage from './pages/StudyPage'
+import AssistantPage from './pages/AssistantPage'
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -28,6 +29,7 @@ function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/words" element={<WordsPage />} />
         <Route path="/study" element={<StudyPage />} />
+        <Route path="/assistant" element={<AssistantPage />} />
       </Routes>
     </Layout>
   )
