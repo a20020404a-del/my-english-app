@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Plus, Search, Edit2, Trash2, X } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, X, Volume2 } from 'lucide-react'
 import { Word, WordFormData } from '../types'
 import { getWords, addWord, updateWord, deleteWord } from '../services/storage'
+import { speakText, initSpeechSynthesis } from '../services/assistant'
 
 export default function WordsPage() {
   const [words, setWords] = useState<Word[]>([])
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingWord, setEditingWord] = useState<Word | null>(null)
+  const [speechReady, setSpeechReady] = useState(false)
   const [formData, setFormData] = useState<WordFormData>({
     english: '',
     japanese: '',
@@ -18,6 +20,7 @@ export default function WordsPage() {
 
   useEffect(() => {
     loadWords()
+    initSpeechSynthesis().then(() => setSpeechReady(true))
   }, [])
 
   const loadWords = () => {
@@ -72,6 +75,13 @@ export default function WordsPage() {
     })
   }
 
+  const playWord = (word: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (speechReady) {
+      speakText(word, 0.8)
+    }
+  }
+
   const difficultyLabel = (d: number) => {
     switch (d) {
       case 1: return '初級'
@@ -83,89 +93,97 @@ export default function WordsPage() {
 
   const difficultyColor = (d: number) => {
     switch (d) {
-      case 1: return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-      case 2: return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-      case 3: return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+      case 1: return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
+      case 2: return 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
+      case 3: return 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
       default: return ''
     }
   }
 
   return (
-    <div className="sm:ml-64 pb-20 sm:pb-0">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="pb-24 md:pb-0">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 mb-5">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">単語帳</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {words.length} 単語を登録中
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">単語帳</h1>
+          <p className="text-slate-500 text-sm mt-0.5">
+            {words.length} 単語
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-xl transition-colors text-sm font-medium shadow-lg shadow-indigo-500/20 active:scale-[0.98]"
         >
-          <Plus className="w-5 h-5" />
-          単語を追加
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">追加</span>
         </button>
       </div>
 
       {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <div className="relative mb-5">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-slate-400" />
         <input
           type="text"
           placeholder="単語を検索..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-full pl-9 md:pl-10 pr-4 py-2.5 md:py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm md:text-base"
         />
       </div>
 
       {/* Word List */}
-      <div className="grid gap-4">
+      <div className="space-y-2 md:space-y-3">
         {filteredWords.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            {search ? '検索結果がありません' : '単語がまだ登録されていません'}
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+            <p className="text-sm">{search ? '検索結果がありません' : '単語がまだ登録されていません'}</p>
           </div>
         ) : (
           filteredWords.map(word => (
             <div
               key={word.id}
-              className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700"
+              className="bg-white dark:bg-slate-900 rounded-xl p-3.5 md:p-4 border border-slate-100 dark:border-slate-800"
             >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <div className="flex justify-between items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h3 className="text-base md:text-lg font-semibold text-slate-900 dark:text-white">
                       {word.english}
                     </h3>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${difficultyColor(word.difficulty)}`}>
+                    <button
+                      onClick={(e) => playWord(word.english, e)}
+                      disabled={!speechReady}
+                      className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                    </button>
+                    <span className={`text-[10px] md:text-xs px-2 py-0.5 rounded-full font-medium ${difficultyColor(word.difficulty)}`}>
                       {difficultyLabel(word.difficulty)}
                     </span>
-                    {word.category && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                        {word.category}
-                      </span>
-                    )}
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400">{word.japanese}</p>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">{word.japanese}</p>
+                  {word.category && (
+                    <span className="inline-block mt-1.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                      {word.category}
+                    </span>
+                  )}
                   {word.example && (
-                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-2 italic">
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 italic line-clamp-2">
                       "{word.example}"
                     </p>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                   <button
                     onClick={() => handleEdit(word)}
-                    className="p-2 text-gray-400 hover:text-primary-500 transition-colors"
+                    className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                   >
-                    <Edit2 className="w-5 h-5" />
+                    <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(word.id)}
-                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -174,100 +192,118 @@ export default function WordsPage() {
         )}
       </div>
 
-      {/* Add/Edit Form Modal */}
+      {/* Add/Edit Form Modal - Full screen on mobile */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 z-50 md:bg-slate-900/50 md:flex md:items-center md:justify-center md:p-4">
+          <div className="h-full md:h-auto bg-white dark:bg-slate-900 md:rounded-2xl w-full md:max-w-md md:max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-4 py-3 md:px-6 md:py-4 flex justify-between items-center">
+              <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white">
                 {editingWord ? '単語を編集' : '単語を追加'}
               </h2>
               <button
                 onClick={resetForm}
-                className="p-2 text-gray-400 hover:text-gray-600"
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  英単語 *
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  英単語 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.english}
                   onChange={e => setFormData({ ...formData, english: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                  autoFocus
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 text-base"
+                  placeholder="apple"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  日本語訳 *
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  日本語訳 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.japanese}
                   onChange={e => setFormData({ ...formData, japanese: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 text-base"
+                  placeholder="りんご"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                   例文
                 </label>
                 <input
                   type="text"
                   value={formData.example}
                   onChange={e => setFormData({ ...formData, example: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 text-base"
+                  placeholder="I eat an apple every day."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                   カテゴリ
                 </label>
                 <input
                   type="text"
                   value={formData.category}
                   onChange={e => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="例: 動詞、名詞、形容詞..."
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                  placeholder="名詞、動詞、形容詞..."
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 text-base"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   難易度
                 </label>
-                <select
-                  value={formData.difficulty}
-                  onChange={e => setFormData({ ...formData, difficulty: Number(e.target.value) as 1 | 2 | 3 })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
-                >
-                  <option value={1}>初級</option>
-                  <option value={2}>中級</option>
-                  <option value={3}>上級</option>
-                </select>
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3].map(level => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, difficulty: level as 1 | 2 | 3 })}
+                      className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
+                        formData.difficulty === level
+                          ? level === 1
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 ring-2 ring-emerald-500'
+                            : level === 2
+                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 ring-2 ring-amber-500'
+                            : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 ring-2 ring-red-500'
+                          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                      }`}
+                    >
+                      {difficultyLabel(level)}
+                    </button>
+                  ))}
+                </div>
               </div>
 
+              {/* Buttons */}
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="flex-1 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-medium text-slate-700 dark:text-slate-300"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+                  className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors font-medium shadow-lg shadow-indigo-500/25"
                 >
                   {editingWord ? '更新' : '追加'}
                 </button>
