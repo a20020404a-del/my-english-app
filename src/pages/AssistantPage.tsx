@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { Search, Volume2, BookOpen, Lightbulb, MessageCircle, Loader2, Sparkles } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Volume2, BookOpen, Lightbulb, MessageCircle, Loader2, Sparkles, Wifi, WifiOff } from 'lucide-react'
 import { WordAnalysis, LearnerLevel } from '../types/assistant'
-import { analyzeWord, getLevelLabel } from '../services/assistant'
+import { analyzeWord, getLevelLabel, speakText, initSpeechSynthesis } from '../services/assistant'
 
 export default function AssistantPage() {
   const [input, setInput] = useState('')
@@ -9,6 +9,19 @@ export default function AssistantPage() {
   const [analysis, setAnalysis] = useState<WordAnalysis | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [apiStatus, setApiStatus] = useState<'checking' | 'online' | 'offline'>('checking')
+  const [speechReady, setSpeechReady] = useState(false)
+
+  // Check API status and initialize speech
+  useEffect(() => {
+    // Check API health
+    fetch('/api/health')
+      .then(res => res.ok ? setApiStatus('online') : setApiStatus('offline'))
+      .catch(() => setApiStatus('offline'))
+
+    // Initialize speech synthesis
+    initSpeechSynthesis().then(() => setSpeechReady(true))
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,27 +41,43 @@ export default function AssistantPage() {
     }
   }
 
-  const speakWord = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'en-US'
-    utterance.rate = 0.8
-    speechSynthesis.speak(utterance)
-  }
-
   return (
     <div className="sm:ml-64 pb-20 sm:pb-0">
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              AI学習アシスタント
+            </h1>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            AI学習アシスタント
-          </h1>
+          {/* API Status Indicator */}
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
+            apiStatus === 'online'
+              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+              : apiStatus === 'offline'
+              ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-500'
+          }`}>
+            {apiStatus === 'online' ? (
+              <><Wifi className="w-4 h-4" /> AI接続中</>
+            ) : apiStatus === 'offline' ? (
+              <><WifiOff className="w-4 h-4" /> オフライン</>
+            ) : (
+              <><Loader2 className="w-4 h-4 animate-spin" /> 接続中...</>
+            )}
+          </div>
         </div>
         <p className="text-gray-600 dark:text-gray-400">
-          英単語を入力すると、発音・意味・例文・学習アドバイスを提供します
+          英単語を入力すると、AIが発音・意味・例文・学習アドバイスを自動生成します
         </p>
+        {apiStatus === 'offline' && (
+          <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2">
+            💡 AI機能を有効にするには: <code className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">npm run server</code> を別ターミナルで実行
+          </p>
+        )}
       </div>
 
       {/* Search Form */}
@@ -110,9 +139,10 @@ export default function AssistantPage() {
                 <h2 className="text-4xl font-bold">{analysis.word}</h2>
               </div>
               <button
-                onClick={() => speakWord(analysis.word)}
+                onClick={() => speakText(analysis.word)}
                 className="p-3 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
                 title="発音を聞く"
+                disabled={!speechReady}
               >
                 <Volume2 className="w-6 h-6" />
               </button>
@@ -174,7 +204,7 @@ export default function AssistantPage() {
                         className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm cursor-pointer hover:bg-green-200 dark:hover:bg-green-900/50"
                         onClick={() => {
                           setInput(syn)
-                          speakWord(syn)
+                          speakText(syn)
                         }}
                       >
                         {syn}
@@ -193,7 +223,7 @@ export default function AssistantPage() {
                         className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-sm cursor-pointer hover:bg-red-200 dark:hover:bg-red-900/50"
                         onClick={() => {
                           setInput(ant)
-                          speakWord(ant)
+                          speakText(ant)
                         }}
                       >
                         {ant}
@@ -224,8 +254,9 @@ export default function AssistantPage() {
                       {example.english}
                     </p>
                     <button
-                      onClick={() => speakWord(example.english)}
+                      onClick={() => speakText(example.english, 0.9)}
                       className="p-2 text-gray-400 hover:text-purple-500 transition-colors flex-shrink-0"
+                      disabled={!speechReady}
                     >
                       <Volume2 className="w-4 h-4" />
                     </button>

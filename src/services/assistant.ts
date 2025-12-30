@@ -1,235 +1,209 @@
-import { WordAnalysis, LearnerLevel, PronunciationInfo, WordMeaning, ExampleSentence, LearningAdvice } from '../types/assistant'
+import { WordAnalysis, LearnerLevel } from '../types/assistant'
 
-// Pronunciation database for common words
-const pronunciationDB: Record<string, PronunciationInfo> = {
-  'photograph': {
-    ipa: '/ˈfoʊ.tə.ɡræf/',
-    katakana: 'フォウタグラフ',
-    tips: '第一音節にアクセント。"ph"は「フ」の音。最後の"graph"は「グラフ」ではなく短く発音。',
-    syllables: 'PHO-to-graph',
-    accentPosition: 1,
-  },
-  'available': {
-    ipa: '/əˈveɪ.lə.bəl/',
-    katakana: 'アヴェイラブル',
-    tips: '第二音節にアクセント。"vai"は「ヴェイ」と二重母音。最後の"ble"は軽く。',
-    syllables: 'a-VAI-la-ble',
-    accentPosition: 2,
-  },
-  'comfortable': {
-    ipa: '/ˈkʌmf.tə.bəl/',
-    katakana: 'カンフタブル',
-    tips: '注意！4音節ではなく3音節。"fort"は弱く発音。日本人は「コンフォータブル」と言いがちだが間違い。',
-    syllables: 'COMF-ta-ble',
-    accentPosition: 1,
-  },
-  'schedule': {
-    ipa: '/ˈskedʒ.uːl/ (米) /ˈʃedʒ.uːl/ (英)',
-    katakana: 'スケジュール（米）/ シェジュール（英）',
-    tips: 'アメリカ英語は「スケ」、イギリス英語は「シェ」で始まる。どちらも正しい。',
-    syllables: 'SCHED-ule',
-    accentPosition: 1,
-  },
-  'important': {
-    ipa: '/ɪmˈpɔːr.tənt/',
-    katakana: 'インポータント',
-    tips: '第二音節にアクセント。"por"を強く長めに発音。最後の"tant"は軽く。',
-    syllables: 'im-POR-tant',
-    accentPosition: 2,
-  },
-  'beautiful': {
-    ipa: '/ˈbjuː.tɪ.fəl/',
-    katakana: 'ビューティフル',
-    tips: '第一音節にアクセント。"beau"は「ビュー」と発音。"ti"は軽く。',
-    syllables: 'BEAU-ti-ful',
-    accentPosition: 1,
-  },
-  'opportunity': {
-    ipa: '/ˌɑː.pərˈtuː.nə.ti/',
-    katakana: 'アパチューニティ',
-    tips: '第三音節にアクセント。"tu"は「チュー」と発音。5音節ある長い単語。',
-    syllables: 'op-por-TU-ni-ty',
-    accentPosition: 3,
-  },
-  'environment': {
-    ipa: '/ɪnˈvaɪ.rən.mənt/',
-    katakana: 'インヴァイランメント',
-    tips: '第二音節にアクセント。"vi"は「ヴァイ」と二重母音。"ron"は軽く。',
-    syllables: 'en-VI-ron-ment',
-    accentPosition: 2,
-  },
-}
+const API_URL = '/api'
 
-// Generate pronunciation for unknown words
-function generatePronunciation(word: string): PronunciationInfo {
-  return {
-    ipa: `/${word}/`,
-    katakana: word.toUpperCase(),
-    tips: 'この単語の詳細な発音情報は準備中です。辞書で確認することをお勧めします。',
-    syllables: word.toUpperCase(),
-    accentPosition: 1,
-  }
-}
-
-// Meaning database
-const meaningDB: Record<string, WordMeaning> = {
-  'available': {
-    primary: '利用可能な、入手できる、（人が）都合がつく',
-    partOfSpeech: '形容詞',
-    synonyms: ['accessible', 'obtainable', 'free'],
-    antonyms: ['unavailable', 'occupied', 'busy'],
-  },
-  'important': {
-    primary: '重要な、大切な',
-    partOfSpeech: '形容詞',
-    synonyms: ['significant', 'essential', 'crucial'],
-    antonyms: ['unimportant', 'trivial', 'minor'],
-  },
-  'beautiful': {
-    primary: '美しい、きれいな',
-    partOfSpeech: '形容詞',
-    synonyms: ['gorgeous', 'stunning', 'lovely'],
-    antonyms: ['ugly', 'unattractive', 'plain'],
-  },
-  'comfortable': {
-    primary: '快適な、心地よい',
-    partOfSpeech: '形容詞',
-    synonyms: ['cozy', 'relaxed', 'pleasant'],
-    antonyms: ['uncomfortable', 'uneasy', 'awkward'],
-  },
-}
-
-// Generate meaning for unknown words
-function generateMeaning(_word: string): WordMeaning {
-  return {
-    primary: 'この単語の意味情報は準備中です',
-    partOfSpeech: '不明',
-    synonyms: [],
-    antonyms: [],
-  }
-}
-
-// Example sentences database
-const examplesDB: Record<string, Record<LearnerLevel, ExampleSentence[]>> = {
-  'available': {
-    beginner: [
-      {
-        english: 'Is this seat available?',
-        japanese: 'この席は空いていますか？',
-        grammar: '"Is ~ available?"で「〜は空いていますか」と尋ねる基本パターン',
-        scene: 'カフェやレストランで席を探すとき',
-      },
-      {
-        english: 'The book is available at the library.',
-        japanese: 'その本は図書館で借りられます。',
-        grammar: '"be available at ~"で「〜で入手可能」',
-        scene: '本や商品がどこで手に入るか説明するとき',
-      },
-      {
-        english: 'I am available tomorrow.',
-        japanese: '明日は空いています。',
-        grammar: '人が主語の場合「都合がつく」の意味',
-        scene: '予定を聞かれたとき',
-      },
-    ],
-    intermediate: [
-      {
-        english: "I'm available for a meeting tomorrow afternoon.",
-        japanese: '明日の午後なら会議に参加できます。',
-        grammar: '"available for ~"で「〜に参加できる、〜の都合がつく」',
-        scene: 'ビジネスでスケジュール調整をするとき',
-      },
-      {
-        english: 'This product is only available online.',
-        japanese: 'この製品はオンラインでのみ購入可能です。',
-        grammar: '"only available ~"で限定的な入手方法を示す',
-        scene: '商品の販売方法を説明するとき',
-      },
-      {
-        english: 'She made herself available for questions.',
-        japanese: '彼女は質問に答える時間を設けました。',
-        grammar: '"make oneself available"で「時間を作る、対応可能にする」',
-        scene: 'プレゼン後のQ&Aセッション',
-      },
-    ],
-    advanced: [
-      {
-        english: 'The data will be made available to researchers upon request.',
-        japanese: 'データは要請に応じて研究者に公開されます。',
-        grammar: '受動態 + "upon request"で正式な表現',
-        scene: '研究機関での情報公開ポリシー',
-      },
-      {
-        english: 'We need to leverage all available resources.',
-        japanese: '利用可能なすべてのリソースを活用する必要があります。',
-        grammar: '"available"を名詞の前に置く形容詞的用法',
-        scene: 'ビジネス戦略会議での議論',
-      },
-      {
-        english: 'The position is available to qualified candidates only.',
-        japanese: 'このポジションは資格を持つ候補者のみに開かれています。',
-        grammar: '"available to ~"で「〜に対して開かれている」',
-        scene: '求人情報の条件説明',
-      },
-    ],
-  },
-}
-
-// Generate examples for unknown words
-function generateExamples(word: string, _level: LearnerLevel): ExampleSentence[] {
-  return [
-    {
-      english: `This is an example sentence with "${word}".`,
-      japanese: `これは"${word}"を使った例文です。`,
-      grammar: 'この単語の例文は準備中です。',
-      scene: '一般的な会話',
-    },
-  ]
-}
-
-// Learning advice database
-const adviceDB: Record<string, LearningAdvice> = {
-  'available': {
-    memorization: '"a-vail-able"と分解して覚える。"avail"（役に立つ）+ "-able"（可能）で「利用可能」と覚えると忘れにくい。',
-    commonMistakes: '「アベイラブル」ではなく「アヴェイラブル」と発音。また、"available"の後に"for"か"to"か迷うが、行動には"for"、人には"to"を使う。',
-    relatedExpressions: ['availability（名詞：利用可能性）', 'unavailable（形容詞：利用不可）', 'readily available（すぐに入手可能）'],
-  },
-  'comfortable': {
-    memorization: '"comfort"（快適）+ "-able"（〜できる）で「快適にできる→快適な」。名詞形"comfort"と合わせて覚える。',
-    commonMistakes: '発音注意！「コンフォータブル」ではなく「カンフタブル」。4音節ではなく3音節。',
-    relatedExpressions: ['comfort（名詞/動詞：快適/慰める）', 'uncomfortable（形容詞：不快な）', 'comfortably（副詞：快適に）'],
-  },
-}
-
-// Generate advice for unknown words
-function generateAdvice(_word: string): LearningAdvice {
-  return {
-    memorization: 'この単語の覚え方は準備中です。繰り返し声に出して練習しましょう。',
-    commonMistakes: 'よくある間違いの情報は準備中です。',
-    relatedExpressions: [],
-  }
-}
-
-// Main analysis function
+// Call AI API for word analysis
 export async function analyzeWord(word: string, level: LearnerLevel): Promise<WordAnalysis> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500))
+  try {
+    const response = await fetch(`${API_URL}/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ word, level }),
+    })
 
-  const normalizedWord = word.toLowerCase().trim()
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
 
-  const pronunciation = pronunciationDB[normalizedWord] || generatePronunciation(normalizedWord)
-  const meaning = meaningDB[normalizedWord] || generateMeaning(normalizedWord)
-  const examples = examplesDB[normalizedWord]?.[level] || generateExamples(normalizedWord, level)
-  const advice = adviceDB[normalizedWord] || generateAdvice(normalizedWord)
+    const result = await response.json()
 
-  return {
-    word: normalizedWord,
-    level,
-    pronunciation,
-    meaning,
-    examples,
-    advice,
+    if (!result.success) {
+      throw new Error(result.error || 'Analysis failed')
+    }
+
+    return result.data as WordAnalysis
+  } catch (error) {
+    console.error('API call failed, using fallback:', error)
+    // Fallback to local data if API fails
+    return generateFallbackAnalysis(word, level)
   }
+}
+
+// Fallback local analysis for when API is unavailable
+function generateFallbackAnalysis(word: string, level: LearnerLevel): WordAnalysis {
+  const fallbackData = getFallbackData(word.toLowerCase())
+
+  if (fallbackData) {
+    return {
+      word: word.toLowerCase(),
+      level,
+      ...fallbackData[level] || fallbackData.intermediate,
+    }
+  }
+
+  // Generic fallback
+  return {
+    word: word.toLowerCase(),
+    level,
+    pronunciation: {
+      ipa: `/${word}/`,
+      katakana: 'カタカナ表記は準備中',
+      tips: 'この単語の発音情報はAI分析をお待ちください。サーバーが起動していることを確認してください。',
+      syllables: word.toUpperCase(),
+      accentPosition: 1,
+    },
+    meaning: {
+      primary: 'AI分析中...',
+      partOfSpeech: '不明',
+      synonyms: [],
+      antonyms: [],
+    },
+    examples: [
+      {
+        english: `Example with "${word}" is being generated...`,
+        japanese: 'AI分析をお待ちください',
+        grammar: 'サーバー起動: npm run server',
+        scene: 'API接続待ち',
+      },
+    ],
+    advice: {
+      memorization: 'AI分析機能を使用するには、別ターミナルで npm run server を実行してください。',
+      commonMistakes: '',
+      relatedExpressions: [],
+    },
+  }
+}
+
+// Comprehensive fallback data for common words
+function getFallbackData(word: string): Record<LearnerLevel, Omit<WordAnalysis, 'word' | 'level'>> | null {
+  const data: Record<string, Record<LearnerLevel, Omit<WordAnalysis, 'word' | 'level'>>> = {
+    'available': {
+      beginner: {
+        pronunciation: {
+          ipa: '/əˈveɪ.lə.bəl/',
+          katakana: 'アヴェイラブル',
+          tips: '「ア」は軽く、「ヴェイ」を強く発音。「ラブル」は軽く添える程度に。',
+          syllables: 'a-VAI-la-ble',
+          accentPosition: 2,
+        },
+        meaning: {
+          primary: '利用可能な、空いている、手に入る',
+          partOfSpeech: '形容詞',
+          synonyms: ['free', 'open', 'ready'],
+          antonyms: ['unavailable', 'busy', 'occupied'],
+        },
+        examples: [
+          {
+            english: 'Is this seat available?',
+            japanese: 'この席は空いていますか？',
+            grammar: 'Is + 名詞 + available? で「〜は空いていますか？」',
+            scene: 'カフェやレストランで席を探すとき',
+          },
+          {
+            english: 'The book is available at the library.',
+            japanese: 'その本は図書館にあります。',
+            grammar: 'be available at + 場所 で「〜で手に入る」',
+            scene: '本や商品がどこにあるか伝えるとき',
+          },
+          {
+            english: 'I am available tomorrow.',
+            japanese: '明日は空いています。',
+            grammar: '人 + be available で「都合がつく」',
+            scene: '予定を聞かれたとき',
+          },
+        ],
+        advice: {
+          memorization: '「a-vail-able」と分解。avail（役に立つ）+ able（可能）＝利用可能',
+          commonMistakes: '「アベイラブル」ではなく「アヴェイラブル」。vの音を忘れずに。',
+          relatedExpressions: ['availability（利用可能性）', 'unavailable（利用不可）'],
+        },
+      },
+      intermediate: {
+        pronunciation: {
+          ipa: '/əˈveɪ.lə.bəl/',
+          katakana: 'アヴェイラブル',
+          tips: '第2音節にストレス。schwa(ə)の音が3回出てくる点に注意。',
+          syllables: 'a-VAI-la-ble',
+          accentPosition: 2,
+        },
+        meaning: {
+          primary: '利用可能な、入手可能な、（人が）都合がつく',
+          partOfSpeech: '形容詞',
+          synonyms: ['accessible', 'obtainable', 'at hand'],
+          antonyms: ['unavailable', 'inaccessible', 'occupied'],
+        },
+        examples: [
+          {
+            english: "I'm available for a meeting anytime this week.",
+            japanese: '今週ならいつでも会議に参加できます。',
+            grammar: 'available for + 行動 で「〜に参加できる状態」',
+            scene: 'ビジネスでスケジュール調整するとき',
+          },
+          {
+            english: 'This product is only available online.',
+            japanese: 'この商品はオンラインでのみ購入可能です。',
+            grammar: 'only available + 場所/方法 で限定を表す',
+            scene: '商品の販売方法を説明するとき',
+          },
+          {
+            english: 'Let me check if the manager is available.',
+            japanese: 'マネージャーの都合を確認させてください。',
+            grammar: 'if + 人 + is available で「〜の都合がつくかどうか」',
+            scene: 'オフィスで取り次ぎをするとき',
+          },
+        ],
+        advice: {
+          memorization: 'avail（利益・効果）+ able で「利用できる状態」と覚える',
+          commonMistakes: 'available to と available for の使い分け。人にはto、目的にはfor。',
+          relatedExpressions: ['make available（利用可能にする）', 'readily available（すぐ手に入る）'],
+        },
+      },
+      advanced: {
+        pronunciation: {
+          ipa: '/əˈveɪ.lə.bəl/',
+          katakana: 'アヴェイラブル',
+          tips: '速い会話では「əˈveɪləbl」と短縮されることも。フォーマルな場面では全音節を明瞭に。',
+          syllables: 'a-VAI-la-ble',
+          accentPosition: 2,
+        },
+        meaning: {
+          primary: '利用可能な、入手可能な、応じられる状態の',
+          partOfSpeech: '形容詞',
+          synonyms: ['accessible', 'obtainable', 'at one\'s disposal'],
+          antonyms: ['unavailable', 'inaccessible', 'engaged'],
+        },
+        examples: [
+          {
+            english: 'We need to leverage all available resources to meet the deadline.',
+            japanese: '締め切りに間に合わせるため、利用可能なすべてのリソースを活用する必要があります。',
+            grammar: 'all available + 名詞 で「利用可能なすべての〜」',
+            scene: 'プロジェクト管理の議論',
+          },
+          {
+            english: 'The data will be made available to researchers upon request.',
+            japanese: 'データは要請に応じて研究者に公開されます。',
+            grammar: 'be made available to + 人 で「〜に公開される」（受動態）',
+            scene: '学術・研究機関でのデータ共有',
+          },
+          {
+            english: 'She made herself available for consultation throughout the process.',
+            japanese: '彼女はプロセス全体を通じて相談に応じる姿勢を見せた。',
+            grammar: 'make oneself available for で「〜に応じる用意がある」',
+            scene: 'リーダーシップを示す場面',
+          },
+        ],
+        advice: {
+          memorization: '語源はラテン語のvalere（価値がある）から。valuable（価値ある）と同根。',
+          commonMistakes: 'available of は誤り。available to/for/at を正しく使い分ける。',
+          relatedExpressions: ['availability window（利用可能期間）', 'subject to availability（在庫状況による）'],
+        },
+      },
+    },
+  }
+
+  return data[word] || null
 }
 
 // Get level label in Japanese
@@ -239,4 +213,40 @@ export function getLevelLabel(level: LearnerLevel): string {
     case 'intermediate': return '中級'
     case 'advanced': return '上級'
   }
+}
+
+// Text-to-speech function
+export function speakText(text: string, rate: number = 0.8): void {
+  // Cancel any ongoing speech
+  speechSynthesis.cancel()
+
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = 'en-US'
+  utterance.rate = rate
+  utterance.pitch = 1
+  utterance.volume = 1
+
+  // Try to get a good English voice
+  const voices = speechSynthesis.getVoices()
+  const englishVoice = voices.find(v =>
+    v.lang.startsWith('en') && (v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Google'))
+  ) || voices.find(v => v.lang.startsWith('en-US'))
+
+  if (englishVoice) {
+    utterance.voice = englishVoice
+  }
+
+  speechSynthesis.speak(utterance)
+}
+
+// Initialize voices (needed for some browsers)
+export function initSpeechSynthesis(): Promise<void> {
+  return new Promise((resolve) => {
+    const voices = speechSynthesis.getVoices()
+    if (voices.length > 0) {
+      resolve()
+    } else {
+      speechSynthesis.onvoiceschanged = () => resolve()
+    }
+  })
 }
