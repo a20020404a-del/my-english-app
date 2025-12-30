@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, BookOpen, GraduationCap, Sun, Moon, Sparkles } from 'lucide-react'
+import { Home, BookOpen, GraduationCap, Sun, Moon, Sparkles, MessageCircle } from 'lucide-react'
 
 interface LayoutProps {
   children: ReactNode
@@ -12,6 +12,7 @@ const navItems = [
   { path: '/', icon: Home, label: 'ダッシュボード' },
   { path: '/words', icon: BookOpen, label: '単語帳' },
   { path: '/study', icon: GraduationCap, label: '学習' },
+  { path: '/scenes', icon: MessageCircle, label: '場面別' },
   { path: '/assistant', icon: Sparkles, label: 'AIアシスタント' },
 ]
 

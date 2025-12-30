@@ -4,6 +4,7 @@ import Layout from './components/layout/Layout'
 import DashboardPage from './pages/DashboardPage'
 import WordsPage from './pages/WordsPage'
 import StudyPage from './pages/StudyPage'
+import ScenesPage from './pages/ScenesPage'
 import AssistantPage from './pages/AssistantPage'
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/words" element={<WordsPage />} />
         <Route path="/study" element={<StudyPage />} />
+        <Route path="/scenes" element={<ScenesPage />} />
         <Route path="/assistant" element={<AssistantPage />} />
       </Routes>
     </Layout>
