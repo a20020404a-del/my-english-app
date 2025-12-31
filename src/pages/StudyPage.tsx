@@ -235,7 +235,7 @@ export default function StudyPage() {
               <div className="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-xl flex flex-col items-center justify-center p-4 md:p-6">
                 <p className="text-indigo-200 mb-3 text-xs md:text-sm">答え</p>
                 <h2 className="text-2xl md:text-4xl font-bold text-white text-center">
-                  {currentWord?.japanese}
+                  {isFlipped ? currentWord?.japanese : ''}
                 </h2>
               </div>
             </div>
