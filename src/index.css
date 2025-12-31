@@ -29,14 +29,33 @@ body {
 
 .preserve-3d {
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 
 .backface-hidden {
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .rotate-y-180 {
   transform: rotateY(180deg);
+}
+
+/* Card back - hidden by default */
+.card-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(180deg);
+  visibility: hidden;
+}
+
+.card-back.flipped {
+  visibility: visible;
+}
+
+.card-front {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Slide-in animation */
